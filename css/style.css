@@ -36,7 +36,7 @@ canvas {
 	animation: fade-in 2000ms forwards;*/
 	background: #000;
 	box-shadow: 0 0 0 10px rgba(255, 255, 255, 0.075);
-	/*cursor: none;*/
+	cursor: none;
 }
 
 @-webkit-keyframes fade-in {

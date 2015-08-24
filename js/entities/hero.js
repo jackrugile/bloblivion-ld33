@@ -1,15 +1,17 @@
 $.hero = function( opt ) { 
 	$.merge( this, opt );
-	this.x = 100;
-	this.y = 100;
+	this.x = 240;
+	this.y = 40 + ( $.game.height - 40 ) / 2;
 	this.vx = 0;
 	this.vy = 0;
-	this.vmax = 2.4;
+	this.vmax = 3;
 	this.accel = 0.75;
-	this.drag = 0.9;
+	this.drag = 0.85;
 	this.radius = 40;
 	this.radiusBase = this.radius;
 	this.pupilMouseAngle = 0;
+	this.shootTimer = 0;
+	this.shootTimerMax = 20;
 	this.collisionRectLarge = {
 		x: 0,
 		y: 0,
@@ -32,26 +34,59 @@ $.hero.prototype.step = function() {
 	this.updateCollisionRects();
 	this.updatePupil();
 
+	if( this.shootTimer > 0 ) {
+		this.shootTimer--;
+
+		var hue,
+			lightness
+
+		// body  mod
+		lightness = 50 + ( this.shootTimer / this.shootTimerMax ) * 40;
+		this.blobs.getAt( 0 ).lightness = lightness;
+		this.blobs.getAt( 1 ).lightness = lightness;
+		this.blobs.getAt( 2 ).lightness = lightness;
+
+
+		// mouth mod
+		hue = 120 + ( this.shootTimer / this.shootTimerMax ) * 80;
+		lightness = 5 + ( this.shootTimer / this.shootTimerMax ) * 40;
+		this.blobs.getAt( 3 ).hue = hue;
+		this.blobs.getAt( 3 ).lightness = lightness;
+
+		// pupil mod
+		hue = 120 + ( this.shootTimer / this.shootTimerMax ) * 80;
+		lightness = 15 + ( this.shootTimer / this.shootTimerMax ) * 40;
+		this.blobs.getAt( 5 ).hue = hue;
+		this.blobs.getAt( 5 ).lightness = lightness;
+	}
+
 	this.blobs.each( 'step' );
 
-	/*if( $.game.state.tick % 2 == 0 ) {
-		$.game.state.particles.create({
-			x: this.x + $.rand( -this.radius, this.radius ),
-			y: this.y + $.rand( -this.radius, this.radius ),
-			vx: -this.vx * 0.2 + $.rand( -0.5, 0.5 ),
-			vy: -this.vy * 0.2 + $.rand( -0.5, 0.5 ),
-			decay: 0.02,
-			hue: $.game.state.level.hue,
-			desaturated: false
-		});
-	}*/
+	if( Math.abs( this.vx ) > 0.2 || Math.abs( this.vy ) > 0.2 ) {
+		if( $.game.state.tick % 5 == 0 ) {
+			$.game.state.particles.create({
+				x: this.x + $.rand( -this.radius / 2, this.radius / 2 ),
+				y: this.y + $.rand( -this.radius / 2, this.radius / 2 ),
+				vx: this.vx + $.rand( -0.5, 0.5 ),
+				vy: this.vy + $.rand( -0.5, 0.5 ),
+				radiusBase: $.rand( 4, 8 ),
+				growth: $.rand( 0.5, 1 ),
+				decay: $.rand( 0.015, 0.03 ),
+				hue: $.rand(90, 150 ),
+				grow: true
+			});
+		}
+	}
 };
 
 $.hero.prototype.render = function() {
 	$.ctx.save()
 	$.ctx.translate( this.x, this.y );
-	//$.ctx.fillStyle( 'limegreen' );
-	//$.ctx.fillCircle( 0, 0, Math.max( 0, this.radius ) );
+	if( this.shootTimer > 0 ) {
+		this.shootTimer--;
+		var scale = 1 + ( this.shootTimer / this.shootTimerMax ) * 0.3;
+		$.ctx.scale( scale, scale );
+	}
 	this.blobs.each( 'render', true );
 	$.ctx.restore();
 };
@@ -103,10 +138,10 @@ $.hero.prototype.handleMovement = function() {
 		this.vx = -this.vx;
 	}
 
-	if( this.collisionRectLarge.y >= 0 ) {
+	if( this.collisionRectLarge.y >= 40 ) {
 		this.y += this.vy;
 	} else {
-		this.y = this.radius;
+		this.y = 40 + this.radius;
 		this.vy = -this.vy;
 	}
 
@@ -134,9 +169,7 @@ $.hero.prototype.inView = function() {
 };
 
 $.hero.prototype.updatePupil = function() {
-	var dx = $.game.mouse.x - this.x - this.blobEye.x,
-		dy = $.game.mouse.y - this.y - this.blobEye.y;
-	this.pupilMouseAngle = Math.atan2( dy, dx );
+	this.pupilMouseAngle = Math.atan2( $.game.mouse.y - this.y - this.blobEye.y, $.game.mouse.x - this.x - this.blobEye.x );
 
 	this.pupil.tx = this.blobPupil.x + Math.cos( this.pupilMouseAngle ) * ( this.blobEye.radius - this.blobPupil.radius );
 	this.pupil.ty = this.blobPupil.y + Math.sin( this.pupilMouseAngle ) * ( this.blobEye.radius - this.blobPupil.radius );
@@ -146,6 +179,12 @@ $.hero.prototype.updatePupil = function() {
 
 $.hero.prototype.createBlobBody = function() {
 	this.blobs = new $.group();
+
+	this.blobMouth = {
+		x: 0,
+		y: 20,
+		radius: 15
+	};
 
 	this.blobEye = {
 		x: 0,
@@ -166,6 +205,7 @@ $.hero.prototype.createBlobBody = function() {
 		count: 25,
 		radius: 40,
 		spread: 15,
+		division: $.rand( 10, 25 ),
 		hue: 90,
 		saturation: 70,
 		lightness: 50,
@@ -180,6 +220,7 @@ $.hero.prototype.createBlobBody = function() {
 		count: 25,
 		radius: 40,
 		spread: 15,
+		division: $.rand( 10, 25 ),
 		hue: 120,
 		saturation: 70,
 		lightness: 50,
@@ -194,6 +235,7 @@ $.hero.prototype.createBlobBody = function() {
 		count: 25,
 		radius: 40,
 		spread: 15,
+		division: $.rand( 10, 25 ),
 		hue: 150,
 		saturation: 70,
 		lightness: 50,
@@ -203,16 +245,18 @@ $.hero.prototype.createBlobBody = function() {
 
 	// mouth
 	this.blobs.push( new $.blob({
-		x: 0,
-		y: 20,
+		x: this.blobMouth.x,
+		y: this.blobMouth.y,
 		count: 15,
-		radius: 15,
+		radius: this.blobMouth.radius,
 		spread: 5,
+		division: $.rand( 10, 25 ),
 		hue: 120,
 		saturation: 80,
 		lightness: 5,
 		alpha: 1,
-		blend: 'source-over'
+		blend: 'source-over',
+		isMouth: true
 	}));
 
 	// eyeball
@@ -222,6 +266,7 @@ $.hero.prototype.createBlobBody = function() {
 		count: 20,
 		radius: this.blobEye.radius,
 		spread: 5,
+		division: $.rand( 10, 25 ),
 		hue: 0,
 		saturation: 0,
 		lightness: 100,
@@ -236,8 +281,9 @@ $.hero.prototype.createBlobBody = function() {
 		count: 10,
 		radius: this.blobPupil.radius,
 		spread: 2,
+		division: $.rand( 10, 25 ),
 		hue: 120,
-		saturation: 40,
+		saturation: 60,
 		lightness: 15,
 		alpha: 1,
 		blend: 'source-over'

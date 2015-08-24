@@ -81,6 +81,68 @@ $.segmentIntersect = function( p0, p1, p2, p3 ) {
 	}
 };
 
+$.segmentToRectIntersect = function( p0, p1, rect ) {
+	// test the segment against each connection of the rect
+
+	// top left - top right
+	if( $.segmentIntersect(
+		p0,
+		p1,
+		{
+			x: rect.x,
+			y: rect.y
+		},
+		{
+			x: rect.x + rect.w,
+			y: rect.y
+		} 
+	) ) { return true };
+
+	// top right - bottom right
+	if( $.segmentIntersect(
+		p0,
+		p1,
+		{
+			x: rect.x + rect.w,
+			y: rect.y
+		},
+		{
+			x: rect.x + rect.w,
+			y: rect.y + rect.h
+		} 
+	) ) { return true };
+
+	// bottom right - bottom left
+	if( $.segmentIntersect(
+		p0,
+		p1,
+		{
+			x: rect.x + rect.w,
+			y: rect.y + rect.h
+		},
+		{
+			x: rect.x,
+			y: rect.y + rect.h
+		} 
+	) ) { return true };
+
+	// bottom left - top left
+	if( $.segmentIntersect(
+		p0,
+		p1,
+		{
+			x: rect.x,
+			y: rect.y + rect.h
+		},
+		{
+			x: rect.x,
+			y: rect.y
+		} 
+	) ) { return true };
+
+	return false
+}
+
 /*==============================================================================
 
 Formatting
@@ -127,13 +189,12 @@ $.polygon = function( points ) {
 	$.ctx.beginPath();
 	$.ctx.moveTo( points[ 0 ].x, points[ 0 ].y );
 	for( var i = 0, length = points.length; i < length; i++ ) {
+		$.ctx.lineTo( points[ i ].x, points[ i ].y );
 		/*var point = points[ i ],
 			pointNext = i === length - 1 ? points[ 0 ] : points[ i + 1 ],
 			c = ( point.x + pointNext.x ) / 2,
 			d = ( point.y + pointNext.y ) / 2
 		$.ctx.quadraticCurveTo( point.x, point.y, c, d );*/
-		var point = points[ i ];
-		$.ctx.lineTo( point.x, point.y );
 	}
 	$.ctx.closePath();
 };

@@ -27,9 +27,16 @@ $.game.create = function() {
 		'overlay6.jpg'
 	);
 
-	/*this.loadSounds(
-		''
+	this.loadSounds(
+		'shoot1.wav',
+		'shoot2.wav',
+		'shoot3.wav',
+		'hit1.wav',
+		'hit2.wav',
+		'hit3.wav'
 	);
+
+	/*
 
 	$.storage = new $.storage( 'game-name' );
 
@@ -59,17 +66,17 @@ $.game.step = function( dt ) {
 };
 
 $.game.renderCursor = function() {
-	/*var scale = 1 + Math.sin( this.tick * 0.1 ) * 0.25;
+	var scale = 0.8 + Math.sin( this.tick * 0.1 ) * 0.2;
 	$.ctx.save();
 	$.ctx.translate( this.mouse.x, this.mouse.y );
 	$.ctx.scale( scale, scale );
-	$.ctx.rotate( this.tick * 0.05 );
-	$.ctx.lineWidth( 1 );
-	$.ctx.strokeStyle( '#fff');
-	$.ctx.strokeRect( -8, -8, 16, 16 );
-	$.ctx.fillStyle( '#fff' );
-	$.ctx.fillCircle( 0, 0, 1 );
-	$.ctx.restore();*/
+	$.ctx.rotate( Math.PI / 4 );
+	$.ctx.lineWidth( 2 );
+	$.ctx.strokeStyle( 'hsla(0, 0%, 100%, 0.5)');
+	$.ctx.strokeRect( -10, -10, 20, 20 );
+	$.ctx.fillStyle( 'hsla(0, 0%, 100%, 1)');
+	$.ctx.fillRect( -2, -2, 4, 4 );
+	$.ctx.restore();
 };
 
 $.game.mousedown = function( e ) {

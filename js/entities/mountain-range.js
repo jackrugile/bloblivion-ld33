@@ -3,14 +3,15 @@ $.mountainRange = function( opt ) {
 	this.speedBase = opt.speed;
 	this.points = [];
 
+	// 50 padding to account for screen shake
 	this.points.push({
-		x: $.game.width,
-		y: $.game.height
+		x: $.game.width + 50,
+		y: $.game.height + 50
 	});
 
 	this.points.push({
-		x: 0,
-		y: $.game.height
+		x: - 50,
+		y: $.game.height + 50
 	});
 
 	var xTotal = 0;
@@ -21,7 +22,6 @@ $.mountainRange = function( opt ) {
 		});
 		xTotal += $.randInt( this.variance.h.min, this.variance.h.max );
 	}
-
 }
 
 $.mountainRange.prototype.step = function() {
@@ -40,11 +40,9 @@ $.mountainRange.prototype.step = function() {
 		this.points.push( p );
 	}
 
-	//if( this.state.hasStarted ) {
-		for( var i = 2, length = this.points.length; i < length; i++ ) {
-			this.points[ i ].x -= this.speed;
-		}
-	//}
+	for( var i = 2, length = this.points.length; i < length; i++ ) {
+		this.points[ i ].x -= this.speed;
+	}
 
 	this.speed = this.speedBase * $.game.state.speed;
 };
