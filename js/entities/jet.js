@@ -4,7 +4,6 @@ $.jet.prototype.init = function( opt ) {
 	$.merge( this, opt );
 	this.size = 40;
 	this.sizeHalf = this.size / 2;
-	this.x = $.game.width + this.size;
 	this.ox = this.x;
 	this.oy = this.y;
 	this.rotation = 0;
@@ -71,14 +70,16 @@ $.jet.prototype.step = function() {
 	this.x += this.vx;
 	this.y += this.vy;
 
-	this.vy = Math.sin( ( $.game.state.tick + this.offset ) / this.division ) * 3;
+	if( !this.stationary ) {
+		this.vy = Math.sin( ( $.game.state.tick + this.offset ) / this.division ) * 3;
+	}
 
 	this.rotation = Math.atan2( this.oy - this.y, this.ox - this.x );
 
 	this.ox = this.x;
 	this.oy = this.y;
 
-	if( $.game.state.tick % 5 === 0 ) {
+	if( $.game.state.tick % 5 === 0 && !this.stationary ) {
 		$.game.state.particles.create({
 			x: this.x,
 			y: this.y,
@@ -126,8 +127,9 @@ $.jet.prototype.step = function() {
 				});
 			}
 
-			$.game.state.shake.translate += 12;
-			$.game.state.shake.rotate += 0.06;
+			$.game.state.shake.translate += 20;
+			$.game.state.shake.rotate += 0.1;
+			$.game.state.recentHitTick = 20;
 
 			$.game.state.jets.release( this );
 		}
@@ -183,5 +185,12 @@ $.jet.prototype.hitDestroy = function() {
 			hue: 0,
 			grow: false
 		});
+	}
+
+	if( $.game.state.killed > $.game.state.hiScoreRef ) {
+		$.storage.set( 'hiScore', $.game.state.killed );
+		// use below to prevent constant storage lookups in play state
+		$.game.state.hiScoreRef = $.game.state.killed;
+		$.game.state.newHiScore = true;
 	}
 }

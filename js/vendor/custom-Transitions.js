@@ -68,7 +68,7 @@ PLAYGROUND.Transitions.Explode = function(manager, progress) {
 	var app = manager.app;
 	var layer = app.layer;
 
-	progress = app.ease(progress, "outExpo");
+	progress = app.ease(progress, 'outExpo');
 
 	var scale = 1 + progress * 1;
 

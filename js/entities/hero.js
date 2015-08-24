@@ -27,7 +27,7 @@ $.hero = function( opt ) {
 
 	this.createBlobBody();
 
-	this.createTick = -30;
+	this.createTick = 0;
 	this.createTickMax = 60;
 };
 
@@ -48,7 +48,6 @@ $.hero.prototype.step = function() {
 		this.blobs.getAt( 0 ).lightness = lightness;
 		this.blobs.getAt( 1 ).lightness = lightness;
 		this.blobs.getAt( 2 ).lightness = lightness;
-
 
 		// mouth mod
 		hue = 120 + ( this.shootTimer / this.shootTimerMax ) * 80;
@@ -92,11 +91,7 @@ $.hero.prototype.render = function() {
 	$.ctx.save()
 	$.ctx.translate( this.x, this.y );
 	if( this.createTick < this.createTickMax ) {
-		//var scale = this.createTick / this.createTickMax;
-
-
 		var scale = $.game.ease( this.createTick / this.createTickMax, 'outElastic' );
-
 		$.ctx.scale( scale, scale );
 	} else {
 		if( this.shootTimer > 0 ) {
@@ -105,7 +100,6 @@ $.hero.prototype.render = function() {
 			$.ctx.scale( scale, scale );
 		}
 	}
-	
 	this.blobs.each( 'render', true );
 	$.ctx.restore();
 };

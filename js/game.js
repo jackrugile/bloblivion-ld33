@@ -47,6 +47,7 @@ $.game.create = function() {
 
 	if( $.isObjEmpty( $.storage.obj ) ) {
 		$.storage.set( 'mute', 0 );
+		$.storage.set( 'hiScore', 0 );
 	}
 
 	if( $.storage.get( 'mute' ) ) {
@@ -69,7 +70,7 @@ $.game.create = function() {
 
 $.game.ready = function() {
 	//this.music.play( 'music', true );
-	this.setState( $.stateMenu );
+	this.setState( $.statePlay );
 };
 
 $.game.step = function( dt ) {
@@ -77,17 +78,19 @@ $.game.step = function( dt ) {
 };
 
 $.game.renderCursor = function() {
-	var scale = 0.8 + Math.sin( this.tick * 0.1 ) * 0.2;
-	$.ctx.save();
-	$.ctx.translate( this.mouse.x, this.mouse.y );
-	$.ctx.scale( scale, scale );
-	$.ctx.rotate( Math.PI / 4 );
-	$.ctx.lineWidth( 2 );
-	$.ctx.strokeStyle( 'hsla(0, 0%, 100%, 0.5)');
-	$.ctx.strokeRect( -10, -10, 20, 20 );
-	$.ctx.fillStyle( 'hsla(0, 0%, 100%, 1)');
-	$.ctx.fillRect( -2, -2, 4, 4 );
-	$.ctx.restore();
+	if( this.mouse.x != 0 || this.mouse.y != 0 ) {
+		var scale = 0.8 + Math.sin( this.tick * 0.1 ) * 0.2;
+		$.ctx.save();
+		$.ctx.translate( this.mouse.x, this.mouse.y );
+		$.ctx.scale( scale, scale );
+		$.ctx.rotate( Math.PI / 4 );
+		$.ctx.lineWidth( 2 );
+		$.ctx.strokeStyle( 'hsla(0, 0%, 100%, 0.5)');
+		$.ctx.strokeRect( -10, -10, 20, 20 );
+		$.ctx.fillStyle( 'hsla(0, 0%, 100%, 1)');
+		$.ctx.fillRect( -2, -2, 4, 4 );
+		$.ctx.restore();
+	}
 };
 
 $.game.renderOverlay = function() {

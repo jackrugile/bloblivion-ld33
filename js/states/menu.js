@@ -110,9 +110,8 @@ $.stateMenu.render = function() {
 
 	$.ctx.font( '16px uni0553wf' );
 	$.ctx.textAlign( 'center' );
-	$.ctx.fillStyle( 'hsla(0, 0%, 100%, ' + this.menuText.alpha * 0.75 + ')' );
+	$.ctx.fillStyle( 'hsla(0, 0%, 100%, ' + this.menuText.alpha * 0.5 + ')' );
 	$.ctx.fillText( 'WASD/ARROWS TO START', $.game.width / 2, $.game.height / 2 + 35 + this.menuText.xOffset );
-
 
 	$.ctx.font( '16px uni0553wf' );
 	$.ctx.fillStyle( 'hsla(0, 0%, 100%, ' + this.menuText.alpha * 0.15 + ')' );
@@ -120,13 +119,16 @@ $.stateMenu.render = function() {
 	$.ctx.fillText( 'YOU ARE THE MONSTER', $.game.width / 2, $.game.height - 60 );
 	$.ctx.fillText( 'MADE BY JACK RUGILE', $.game.width / 2, $.game.height - 40 );
 
+	'SHOOT THE SHIPS BEFORE THEY GET TO THE OTHER SIDE'
+	'WASD/ARROWS TO MOVE'
+	'CLICK TO SHOOT'
+
 	$.game.renderCursor();
 	$.game.renderOverlay();
 };
 
 $.stateMenu.mousedown = function( e ) {
 	if( e.button == 'left' ) {
-		//$.game.setState( $.statePlay );
 	} else if( e.button == 'right' ) {
 	}
 };
@@ -138,7 +140,6 @@ $.stateMenu.keydown = function( e ) {
 		$.game.keyboard.keys.s || $.game.keyboard.keys.down ||
 		$.game.keyboard.keys.d || $.game.keyboard.keys.right
 	) {
-		$.game.setState( $.statePlay );
+		$.game.setState( $.stateTutorial );
 	}
-
 };

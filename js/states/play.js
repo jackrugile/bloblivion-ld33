@@ -46,10 +46,12 @@ $.statePlay.enter = function() {
 		rotate: 0
 	};
 
-	this.lives = 3;
+	this.lives = 100;
 	this.killed = 0;
 	this.dead = false;
 	this.paused = false;
+	this.hiScoreRef = $.storage.get( 'hiScore' );
+	this.newHiScore = false;
 
 	this.scoreTick = 0;
 	this.scoreTickMax = 50;
@@ -133,7 +135,17 @@ $.statePlay.render = function( dt ) {
 	this.hero.render();
 	this.projectiles.each( 'render' );
 	this.explosions.each( 'render' );
+	
 	$.ctx.restore();
+
+	if( this.recentHitTick ) {
+		$.ctx.save();
+		$.ctx.globalCompositeOperation( 'lighter' );
+		$.ctx.fillStyle( 'hsla(0, 100%, ' + $.rand( 20, 50 ) + '%, ' + $.rand( 0.2, 0.7 ) + ')' );
+		$.ctx.fillRect( 0, 0, $.game.width, $.game.height );
+		$.ctx.restore();
+		this.recentHitTick--;
+	}
 
 	this.renderUI();
 	this.puffs.each( 'render' );
@@ -143,6 +155,12 @@ $.statePlay.render = function( dt ) {
 	if( this.dead ) {
 		$.ctx.fillStyle( 'hsla(0, 0%, 100%, ' + this.gameoverTick / this.gameoverTickMax + ')' );
 		$.ctx.fillRect( 0, 0, $.game.width, $.game.height );
+
+		$.ctx.font( '32px uni0553wf' );
+		$.ctx.textBaseline( 'top' );
+		$.ctx.textAlign( 'center' );
+		$.ctx.fillStyle( 'hsla(0, 0%, 0%, 0.75)' );
+		$.ctx.fillText( $.pad( this.killed, 3 ), $.game.width / 2, $.game.height / 2 - 26 );
 	}
 };
 
@@ -249,6 +267,7 @@ $.statePlay.generateJets= function() {
 
 	if( this.jetSpawner.current >= this.jetSpawner.target ) {
 		this.jets.create({
+			x: $.game.width + 40,
 			y: $.rand( 40 + 100, $.game.height - 100 ),
 			vx: -5,
 			vy: 0,
@@ -335,12 +354,15 @@ $.statePlay.renderUI = function() {
 	} else {
 		$.ctx.fillStyle( 'hsla(0, 0%, 100%, 0.4)' );
 	}
-	$.ctx.fillText( '' + $.pad( this.killed, 3 ), 110, 0 );
+	$.ctx.fillText( $.pad( this.killed, 3 ), 110, 0 );
 
 	$.ctx.textAlign( 'right' );
-	$.ctx.fillStyle( 'hsla(0, 0%, 100%, 0.4)' );
-	$.ctx.fillText( 'HI ' + $.pad( 333, 3 ), $.game.width - 20, 1 );
-
+	if( this.newHiScore ) {
+		$.ctx.fillStyle( 'hsla(120, 80%, 65%, 1)' );
+	} else {
+		$.ctx.fillStyle( 'hsla(0, 0%, 100%, 0.4)' );
+	}
+	$.ctx.fillText( 'HI ' + $.pad( this.hiScoreRef, 3 ), $.game.width - 20, 1 );
 };
 
 $.statePlay.renderHeart = function( opt ) {
