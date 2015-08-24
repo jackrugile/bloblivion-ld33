@@ -8,7 +8,7 @@ $.moon = function( opt ) {
 };
 
 $.moon.prototype.step = function( i ) {
-	this.rotation = Math.PI / 4 + Math.sin( $.game.tick / 100 ) * Math.PI / 8;
+	this.rotation = Math.PI / 4 + Math.sin( $.game.state.tick / 100 ) * Math.PI / 8;
 };
 
 $.moon.prototype.render = function() {

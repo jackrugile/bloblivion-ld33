@@ -77,7 +77,7 @@ PLAYGROUND.Transitions.Explode = function(manager, progress) {
 	layer.a(1-progress);
 	layer.tars(app.center.x, app.center.y, 0.5, 0.5, 0, scale, scale);
 	layer.drawImage(manager.screenshot, 0, 0);
-	layer.fillStyle( 'rgba(255, 255, 255, 0.5)' );
+	layer.fillStyle( 'rgba(0, 0, 0, 1)' );
 	layer.fillRect( 0, 0, app.width, app.height );
 	layer.restore();
 

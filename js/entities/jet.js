@@ -71,14 +71,14 @@ $.jet.prototype.step = function() {
 	this.x += this.vx;
 	this.y += this.vy;
 
-	this.vy = Math.sin( ( $.game.tick + this.offset ) / this.division ) * 3;
+	this.vy = Math.sin( ( $.game.state.tick + this.offset ) / this.division ) * 3;
 
 	this.rotation = Math.atan2( this.oy - this.y, this.ox - this.x );
 
 	this.ox = this.x;
 	this.oy = this.y;
 
-	if( $.game.tick % 5 === 0 ) {
+	if( $.game.state.tick % 5 === 0 ) {
 		$.game.state.particles.create({
 			x: this.x,
 			y: this.y,
@@ -100,11 +100,9 @@ $.jet.prototype.step = function() {
 		if( this.x - this.sizeHalf < 0 ) {
 			var sound = $.game.playSound( 'wall-hit1' );
 			$.game.sound.setVolume( sound, 0.2 );
-			//$.game.sound.setPlaybackRate( sound, rate );
 
 			sound = $.game.playSound( 'wall-hit2' );
 			$.game.sound.setVolume( sound, 0.15 );
-			//$.game.sound.setPlaybackRate( sound, $.rand( 0.9, 1.1 ) );
 
 			$.game.state.lives--;
 

@@ -13,8 +13,8 @@ $.star = function( opt ) {
 };
 
 $.star.prototype.step = function( i ) {
-	this.rotation = Math.PI / 4 + Math.sin( ( $.game.tick + this.offset ) / this.rotationDivider ) * Math.PI / 6;
-	this.alpha = 0.08 + Math.cos( ( $.game.tick + this.offset ) / this.twinkleDivider ) * 0.06;
+	this.rotation = Math.PI / 4 + Math.sin( ( $.game.state.tick + this.offset ) / this.rotationDivider ) * Math.PI / 6;
+	this.alpha = 0.08 + Math.cos( ( $.game.state.tick + this.offset ) / this.twinkleDivider ) * 0.06;
 
 	if( $.rand( 0, 1 ) > 0.99 ) {
 		this.twinkleTimer = this.twinkleTimerMax;

@@ -1,12 +1,15 @@
 $.stateMenu = {};
 
 $.stateMenu.create = function() {
+};
+
+$.stateMenu.enter = function() {
 	this.tick = 0;
 
 	this.blobs = new $.group();
 
 	this.menuText = {
-		y: $.game.height / 2 - 100,
+		xOffset: 100,
 		alpha: 0
 	};
 
@@ -15,8 +18,8 @@ $.stateMenu.create = function() {
 	};
 
 	var count = 30,
-		radius = 210,
-		spread = 120;
+		radius = 110,
+		spread = 40;
 
 	// main shape 1
 	this.blobs.push( new $.blob({
@@ -24,7 +27,7 @@ $.stateMenu.create = function() {
 		y: $.game.height / 2,
 		count: count,
 		radius: radius,
-		spread: 40,
+		spread: spread,
 		division: $.rand( 25, 50 ),
 		hue: 90,
 		saturation: 0,
@@ -39,7 +42,7 @@ $.stateMenu.create = function() {
 		y: $.game.height / 2,
 		count: count,
 		radius: radius,
-		spread: 40,
+		spread: spread,
 		division: $.rand( 25, 50 ),
 		hue: 120,
 		saturation: 0,
@@ -54,7 +57,7 @@ $.stateMenu.create = function() {
 		y: $.game.height / 2,
 		count: count,
 		radius: radius,
-		spread: 40,
+		spread: spread,
 		division: $.rand( 25, 50 ),
 		hue: 150,
 		saturation: 0,
@@ -62,9 +65,6 @@ $.stateMenu.create = function() {
 		alpha: 1,
 		blend: 'lighter'
 	}));
-};
-
-$.stateMenu.enter = function() {
 }
 
 $.stateMenu.leave = function() {
@@ -74,11 +74,10 @@ $.stateMenu.leave = function() {
 };
 
 $.stateMenu.step = function() {
-	if( this.tick === 50 ) {
-		$.game.tween( this.menuText ).to( { y: $.game.height / 2 - 5, alpha: 1 }, 1.5, 'outElastic' );
+	if( this.tick === 25 ) {
+		$.game.tween( this.menuText ).to( { xOffset: 0, alpha: 1 }, 1.5, 'inOutExpo' );
 		$.game.tween( this.menuBlobs ).to( { scale: 1 }, 1.5, 'outElastic' );
 	}
-
 
 	this.blobs.each( 'step' );
 
@@ -103,23 +102,23 @@ $.stateMenu.render = function() {
 	//$.ctx.fillText( 'BLOBLIVION', $.game.width / 2, $.game.height / 2 - 5 );
 
 	$.ctx.fillStyle( 'hsla(120, 80%, 65%, ' + this.menuText.alpha + ')' );
-	$.ctx.fillText( 'BLOB', $.game.width / 2 - 81, this.menuText.y );
+	$.ctx.fillText( 'BLOB', $.game.width / 2 - 81 - this.menuText.xOffset, $.game.height / 2 - 20 );
 
 	$.ctx.fillStyle( 'hsla(0, 0%, 100%, ' + this.menuText.alpha + ')' );
-	$.ctx.fillText( 'LIVION', $.game.width / 2 + 69, $.game.height - 10 - this.menuText.y );
-
-
-
+	$.ctx.fillText( 'LIVION', $.game.width / 2 + 69 + this.menuText.xOffset, $.game.height / 2 - 20 );
 
 
 	$.ctx.font( '16px uni0553wf' );
-	$.ctx.textBaseline( 'middle' );
 	$.ctx.textAlign( 'center' );
+	$.ctx.fillStyle( 'hsla(0, 0%, 100%, ' + this.menuText.alpha * 0.75 + ')' );
+	$.ctx.fillText( 'WASD/ARROWS TO START', $.game.width / 2, $.game.height / 2 + 35 + this.menuText.xOffset );
 
-	$.ctx.fillStyle( 'hsla(0, 0%, 100%, 1)' );
-	$.ctx.fillText( 'BUILT FOR LUDUM DARE 33', $.game.width / 2 + 69, $.game.height - 10 - this.menuText.y );
-	$.ctx.fillText( 'YOU ARE THE MONSTER', $.game.width / 2 + 69, $.game.height - 10 - this.menuText.y );
-	$.ctx.fillText( 'MADE BY JACK RUGILE', $.game.width / 2 + 69, $.game.height - 10 - this.menuText.y );
+
+	$.ctx.font( '16px uni0553wf' );
+	$.ctx.fillStyle( 'hsla(0, 0%, 100%, ' + this.menuText.alpha * 0.15 + ')' );
+	$.ctx.fillText( 'BUILT FOR LUDUM DARE 33', $.game.width / 2, $.game.height - 80 );
+	$.ctx.fillText( 'YOU ARE THE MONSTER', $.game.width / 2, $.game.height - 60 );
+	$.ctx.fillText( 'MADE BY JACK RUGILE', $.game.width / 2, $.game.height - 40 );
 
 	$.game.renderCursor();
 	$.game.renderOverlay();
@@ -127,11 +126,19 @@ $.stateMenu.render = function() {
 
 $.stateMenu.mousedown = function( e ) {
 	if( e.button == 'left' ) {
+		//$.game.setState( $.statePlay );
 	} else if( e.button == 'right' ) {
 	}
 };
 
 $.stateMenu.keydown = function( e ) {
-	if( e.key == 'escape' ) {
+	if(
+		$.game.keyboard.keys.w || $.game.keyboard.keys.up ||
+		$.game.keyboard.keys.a || $.game.keyboard.keys.left ||
+		$.game.keyboard.keys.s || $.game.keyboard.keys.down ||
+		$.game.keyboard.keys.d || $.game.keyboard.keys.right
+	) {
+		$.game.setState( $.statePlay );
 	}
+
 };

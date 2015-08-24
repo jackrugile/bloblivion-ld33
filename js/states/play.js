@@ -5,7 +5,7 @@ $.statePlay.create = function() {
 
 $.statePlay.enter = function() {
 	var sound = $.game.playSound( 'gamestart1' );
-	$.game.sound.setVolume( sound, 0.2 );
+	$.game.sound.setVolume( sound, 0.15 );
 
 	this.particles = new $.pool( $.particle, 200 );
 	this.puffs = new $.pool( $.puff, 50 );
@@ -49,12 +49,13 @@ $.statePlay.enter = function() {
 	this.lives = 3;
 	this.killed = 0;
 	this.dead = false;
+	this.paused = false;
 
 	this.scoreTick = 0;
 	this.scoreTickMax = 50;
 
 	this.gameoverTick = 0;
-	this.gameoverTickMax = 200;
+	this.gameoverTickMax = 120;
 
 	this.tick = 0;
 }
@@ -86,6 +87,8 @@ $.statePlay.leave = function() {
 };
 
 $.statePlay.step = function( dt ) {
+	if( this.paused ) { return; }
+
 	this.handleScreenShake();
 
 	this.updateDifficulty();
@@ -116,7 +119,7 @@ $.statePlay.render = function( dt ) {
 	$.ctx.clear( $.game.clearColor );
 
 	$.ctx.save();
-	if( this.shake.translate || this.shake.rotate ) {
+	if( !this.paused && ( this.shake.translate || this.shake.rotate ) ) {
 		$.ctx.translate( $.game.width / 2 + $.rand( -this.shake.translate, this.shake.translate ), $.game.height / 2 + $.rand( -this.shake.translate, this.shake.translate ) );
 		$.ctx.rotate( $.rand( -this.shake.rotate, this.shake.rotate ) );
 		$.ctx.translate( -$.game.width / 2 + $.rand( -this.shake.translate, this.shake.translate ) , -$.game.height / 2 + $.rand( -this.shake.translate, this.shake.translate ));
@@ -152,13 +155,15 @@ $.statePlay.mousedown = function( e ) {
 };
 
 $.statePlay.keydown = function( e ) {
-	if( e.key == 'escape' ) {
-
+	if( e.key == 'p' ) {
+		//this.paused = !this.paused;
+		// too easy to cheat with this
 	}
 };
 
 $.statePlay.shoot = function() {
-	if( this.dead ) { return };
+	if( this.dead ) { return; }
+	if( this.paused ) { return; }
 
 	var sound = $.game.playSound( 'shoot' + $.randInt( 1, 3 ) );
 	$.game.sound.setVolume( sound, 0.6 );
@@ -215,7 +220,7 @@ $.statePlay.createClouds = function() {
 };
 
 $.statePlay.updateDifficulty = function() {
-	if( this.dead ) { return };
+	if( this.dead ) { return; }
 
 	if( this.diffTracker.current >= this.diffTracker.target ) {
 		console.log( 'UP' );
@@ -240,7 +245,7 @@ $.statePlay.generateClouds = function() {
 };
 
 $.statePlay.generateJets= function() {
-	if( this.dead ) { return };
+	if( this.dead ) { return; }
 
 	if( this.jetSpawner.current >= this.jetSpawner.target ) {
 		this.jets.create({
@@ -326,7 +331,7 @@ $.statePlay.renderUI = function() {
 	$.ctx.textBaseline( 'top' );
 	$.ctx.textAlign( 'left' );
 	if( this.scoreTick > 0 ) {
-		$.ctx.fillStyle( 'hsla(0, 0%, 100%, ' + ( 0.4 + ( this.scoreTick / ( this.scoreTickMax / 2 ) ) * 0.6 ) + ')' );
+		$.ctx.fillStyle( 'hsla(0, 0%, 100%, ' + ( 0.4 + ( this.scoreTick / this.scoreTickMax ) * 0.6 ) + ')' );
 	} else {
 		$.ctx.fillStyle( 'hsla(0, 0%, 100%, 0.4)' );
 	}
@@ -394,7 +399,7 @@ $.statePlay.gameover = function() {
 		$.game.state.explosions.create({
 			x: this.hero.x,
 			y: this.hero.y,
-			radius: 120,
+			radius: 90,
 			hue: 120
 		});
 

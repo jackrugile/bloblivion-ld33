@@ -35,7 +35,7 @@ $.explosion.prototype.render = function() {
 	$.ctx.ra();
 	$.ctx.restore();
 
-	if( this.tick < 10 ) {
+	if( !$.game.state.paused && this.tick < 10 ) {
 		$.ctx.fillStyle( 'hsla(0, 0%, 100%, ' + $.rand( 0.02, 0.1 ) + ')' );
 		$.ctx.fillRect( 0, 0, $.game.width, $.game.height );
 	}

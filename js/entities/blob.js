@@ -22,7 +22,7 @@ $.blob.prototype.step = function() {
 	this.rotation += this.rotationSpeed;
 	for( var i = 0, length = this.count; i < length; i++ ) {
 		var point = this.points[ i ];
-		point.sin = Math.sin( ( $.game.tick + point.offset ) / point.division );
+		point.sin = Math.sin( ( $.game.state.tick + point.offset ) / point.division );
 		point.x = Math.cos( point.angle ) * ( point.radius + point.spread * point.sin );
 		point.y = Math.sin( point.angle ) * ( point.radius + point.spread * point.sin );
 	}

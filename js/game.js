@@ -108,8 +108,8 @@ $.game.renderOverlay = function() {
 };
 
 $.game.mousedown = function( e ) {
-	var sound = this.playSound( 'click' + $.randInt( 1, 3 ) );
-	this.sound.setVolume( sound, 0.7 );
+	//var sound = this.playSound( 'click' + $.randInt( 1, 3 ) );
+	//this.sound.setVolume( sound, 0.7 );
 	//$.game.sound.setPlaybackRate( sound,1 );
 };
 
