@@ -28,17 +28,22 @@ $.game.create = function() {
 	);
 
 	this.loadSounds(
+		'click1.wav',
+		'click2.wav',
+		'click3.wav',
 		'shoot1.wav',
 		'shoot2.wav',
 		'shoot3.wav',
 		'hit1.wav',
 		'hit2.wav',
-		'hit3.wav'
+		'hit3.wav',
+		'wall-hit1.wav',
+		'wall-hit2.wav',
+		'gamestart1.wav',
+		'gameover1.wav'
 	);
 
-	/*
-
-	$.storage = new $.storage( 'game-name' );
+	$.storage = new $.storage( 'bloblivion' );
 
 	if( $.isObjEmpty( $.storage.obj ) ) {
 		$.storage.set( 'mute', 0 );
@@ -51,14 +56,20 @@ $.game.create = function() {
 		this.sound.setMaster( 1 );
 		this.music.setMaster( 0.5 );
 	}
-	*/
+
+	this.overlayTimer = {
+		current: 0,
+		target: 1,
+		index: 0,
+		max: 5
+	};
 
 	$.ctx = this.layer;
 };
 
 $.game.ready = function() {
 	//this.music.play( 'music', true );
-	this.setState( $.statePlay );
+	this.setState( $.stateMenu );
 };
 
 $.game.step = function( dt ) {
@@ -79,17 +90,31 @@ $.game.renderCursor = function() {
 	$.ctx.restore();
 };
 
+$.game.renderOverlay = function() {
+	if( this.overlayTimer.current >= this.overlayTimer.target ) {
+		if( this.overlayTimer.index === this.overlayTimer.max ) {
+			this.overlayTimer.index = 0;
+		} else {
+			this.overlayTimer.index++;
+		}
+		this.overlayTimer.current = 0;
+	} else {
+		this.overlayTimer.current++;
+	}
+
+	$.ctx.a( 0.1 );
+	$.ctx.drawImage( $.game.images[ 'overlay' + ( this.overlayTimer.index + 1 ) ], 0, 0 );
+	$.ctx.ra();
+};
+
 $.game.mousedown = function( e ) {
-	/*var sound = this.playSound( 'click1' );
-	this.sound.setVolume( sound, 2 );
-	var sound = this.playSound( 'click1' );
-	this.sound.setVolume( sound, 2 );
-	var sound = this.playSound( 'click1' );
-	this.sound.setVolume( sound, 2 );*/
+	var sound = this.playSound( 'click' + $.randInt( 1, 3 ) );
+	this.sound.setVolume( sound, 0.7 );
+	//$.game.sound.setPlaybackRate( sound,1 );
 };
 
 $.game.keydown = function( e ) {
-	/*if( e.key == 'm' ) {
+	if( e.key == 'm' ) {
 		var muted = $.storage.get( 'mute' );
 		if( muted ) {
 			$.storage.set( 'mute', 0 );
@@ -100,5 +125,5 @@ $.game.keydown = function( e ) {
 			this.sound.setMaster( 0 );
 			this.music.setMaster( 0 );
 		}
-	}*/
+	}
 };

@@ -14,7 +14,7 @@ $.explosion.prototype.step = function() {
 
 	this.life *= 0.85;
 	//this.alpha = 0.75 + this.life * 1;
-	this.scale = this.life * 20;
+	this.scale = this.life * 30;
 
 	this.tick++;
 

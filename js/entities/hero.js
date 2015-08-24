@@ -1,6 +1,6 @@
 $.hero = function( opt ) { 
 	$.merge( this, opt );
-	this.x = 240;
+	this.x = 200;
 	this.y = 40 + ( $.game.height - 40 ) / 2;
 	this.vx = 0;
 	this.vy = 0;
@@ -26,6 +26,9 @@ $.hero = function( opt ) {
 	};
 
 	this.createBlobBody();
+
+	this.createTick = -30;
+	this.createTickMax = 60;
 };
 
 $.hero.prototype.step = function() {
@@ -62,7 +65,7 @@ $.hero.prototype.step = function() {
 
 	this.blobs.each( 'step' );
 
-	if( Math.abs( this.vx ) > 0.2 || Math.abs( this.vy ) > 0.2 ) {
+	if( !$.game.state.dead && ( Math.abs( this.vx ) > 0.2 || Math.abs( this.vy ) > 0.2 ) ) {
 		if( $.game.state.tick % 5 == 0 ) {
 			$.game.state.particles.create({
 				x: this.x + $.rand( -this.radius / 2, this.radius / 2 ),
@@ -77,16 +80,32 @@ $.hero.prototype.step = function() {
 			});
 		}
 	}
+
+	if( this.createTick < this.createTickMax ) {
+		this.createTick++;
+	}
 };
 
 $.hero.prototype.render = function() {
+	if( $.game.state.dead ) { return; }
+
 	$.ctx.save()
 	$.ctx.translate( this.x, this.y );
-	if( this.shootTimer > 0 ) {
-		this.shootTimer--;
-		var scale = 1 + ( this.shootTimer / this.shootTimerMax ) * 0.3;
+	if( this.createTick < this.createTickMax ) {
+		//var scale = this.createTick / this.createTickMax;
+
+
+		var scale = $.game.ease( this.createTick / this.createTickMax, 'outElastic' );
+
 		$.ctx.scale( scale, scale );
+	} else {
+		if( this.shootTimer > 0 ) {
+			this.shootTimer--;
+			var scale = 1 + ( this.shootTimer / this.shootTimerMax ) * 0.3;
+			$.ctx.scale( scale, scale );
+		}
 	}
+	
 	this.blobs.each( 'render', true );
 	$.ctx.restore();
 };
@@ -99,69 +118,73 @@ $.hero.prototype.updateCollisionRects = function() {
 }
 
 $.hero.prototype.handleMovement = function() {
-	// apply forces from controls
-	if( $.game.keyboard.keys.w || $.game.keyboard.keys.up ) {
-		this.vy -= this.accel;
-	}
-	if( $.game.keyboard.keys.d || $.game.keyboard.keys.right ) {
-		this.vx += this.accel;
-	}
-	if( $.game.keyboard.keys.s || $.game.keyboard.keys.down ) {
-		this.vy += this.accel;
-	}
-	if( $.game.keyboard.keys.a || $.game.keyboard.keys.left ) {
-		this.vx -= this.accel;
-	}
+	if( $.game.state.dead ) {
 
-	// lock max velocity
-	if( this.vx > this.vmax ) {
-		this.vx = this.vmax;
-	}
-
-	if( this.vy > this.vmax ) {
-		this.vy = this.vmax;
-	}
-
-	if( this.vx < -this.vmax ) {
-		this.vx = -this.vmax;
-	}
-
-	if( this.vy < -this.vmax ) {
-		this.vy = -this.vmax;
-	}
-
-	// lock viewport bounds
-	if( this.collisionRectLarge.x >= 0 ) {
-		this.x += this.vx;
 	} else {
-		this.x = this.radius;
-		this.vx = -this.vx;
-	}
+		// apply forces from controls
+		if( $.game.keyboard.keys.w || $.game.keyboard.keys.up ) {
+			this.vy -= this.accel;
+		}
+		if( $.game.keyboard.keys.d || $.game.keyboard.keys.right ) {
+			this.vx += this.accel;
+		}
+		if( $.game.keyboard.keys.s || $.game.keyboard.keys.down ) {
+			this.vy += this.accel;
+		}
+		if( $.game.keyboard.keys.a || $.game.keyboard.keys.left ) {
+			this.vx -= this.accel;
+		}
 
-	if( this.collisionRectLarge.y >= 40 ) {
-		this.y += this.vy;
-	} else {
-		this.y = 40 + this.radius;
-		this.vy = -this.vy;
-	}
+		// lock max velocity
+		if( this.vx > this.vmax ) {
+			this.vx = this.vmax;
+		}
 
-	if( this.collisionRectLarge.x + this.collisionRectLarge.w <= $.game.width ) {
-		this.x += this.vx;
-	} else {
-		this.x = $.game.width - this.radius;
-		this.vx = -this.vx;
-	}
+		if( this.vy > this.vmax ) {
+			this.vy = this.vmax;
+		}
 
-	if( this.collisionRectLarge.y + this.collisionRectLarge.h <= $.game.height ) {
-		this.y += this.vy;
-	} else {
-		this.y = $.game.height - this.radius;
-		this.vy = -this.vy;
-	}
+		if( this.vx < -this.vmax ) {
+			this.vx = -this.vmax;
+		}
 
-	// apply drag
-	this.vx *= this.drag;
-	this.vy *= this.drag;
+		if( this.vy < -this.vmax ) {
+			this.vy = -this.vmax;
+		}
+
+		// lock viewport bounds
+		if( this.collisionRectLarge.x >= 0 ) {
+			this.x += this.vx;
+		} else {
+			this.x = this.radius;
+			this.vx = -this.vx;
+		}
+
+		if( this.collisionRectLarge.y >= 40 ) {
+			this.y += this.vy;
+		} else {
+			this.y = 40 + this.radius;
+			this.vy = -this.vy;
+		}
+
+		if( this.collisionRectLarge.x + this.collisionRectLarge.w <= $.game.width ) {
+			this.x += this.vx;
+		} else {
+			this.x = $.game.width - this.radius;
+			this.vx = -this.vx;
+		}
+
+		if( this.collisionRectLarge.y + this.collisionRectLarge.h <= $.game.height ) {
+			this.y += this.vy;
+		} else {
+			this.y = $.game.height - this.radius;
+			this.vy = -this.vy;
+		}
+
+		// apply drag
+		this.vx *= this.drag;
+		this.vy *= this.drag;
+	}
 };
 
 $.hero.prototype.inView = function() {

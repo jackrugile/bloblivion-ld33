@@ -4,6 +4,9 @@ $.statePlay.create = function() {
 };
 
 $.statePlay.enter = function() {
+	var sound = $.game.playSound( 'gamestart1' );
+	$.game.sound.setVolume( sound, 0.2 );
+
 	this.particles = new $.pool( $.particle, 200 );
 	this.puffs = new $.pool( $.puff, 50 );
 	this.explosions = new $.pool( $.explosion, 50 );
@@ -37,13 +40,6 @@ $.statePlay.enter = function() {
 		target: 500
 	};
 
-	this.overlayTimer = {
-		current: 0,
-		target: 1,
-		index: 0,
-		max: 5
-	};
-
 	this.speed = 20;
 	this.shake = {
 		translate: 0,
@@ -54,7 +50,12 @@ $.statePlay.enter = function() {
 	this.killed = 0;
 	this.dead = false;
 
+	this.scoreTick = 0;
+	this.scoreTickMax = 50;
+
 	this.gameoverTick = 0;
+	this.gameoverTickMax = 200;
+
 	this.tick = 0;
 }
 
@@ -67,6 +68,10 @@ $.statePlay.leave = function() {
 	this.jets.empty();
 	this.mountainRanges.empty();
 	this.stars.empty();
+
+	this.hero.blobs.each( 'destroy' );
+	this.hero.blobs.empty();
+	this.hero.blobs = null;
 
 	this.particles = null;
 	this.puffs = null;
@@ -104,7 +109,7 @@ $.statePlay.step = function( dt ) {
 		this.gameover();
 	}
 
-	//this.tick++;
+	this.tick++;
 };
 
 $.statePlay.render = function( dt ) {
@@ -130,7 +135,12 @@ $.statePlay.render = function( dt ) {
 	this.renderUI();
 	this.puffs.each( 'render' );
 	$.game.renderCursor();
-	this.renderOverlay();
+	$.game.renderOverlay();
+
+	if( this.dead ) {
+		$.ctx.fillStyle( 'hsla(0, 0%, 100%, ' + this.gameoverTick / this.gameoverTickMax + ')' );
+		$.ctx.fillRect( 0, 0, $.game.width, $.game.height );
+	}
 };
 
 $.statePlay.mousedown = function( e ) {
@@ -282,26 +292,10 @@ $.statePlay.handleScreenShake = function() {
 	}
 };
 
-
-$.statePlay.renderOverlay = function() {
-	if( this.overlayTimer.current >= this.overlayTimer.target ) {
-		if( this.overlayTimer.index === this.overlayTimer.max ) {
-			this.overlayTimer.index = 0;
-		} else {
-			this.overlayTimer.index++;
-		}
-		this.overlayTimer.current = 0;
-	} else {
-		this.overlayTimer.current++;
-	}
-
-	$.ctx.a( 0.1 );
-	$.ctx.drawImage( $.game.images[ 'overlay' + ( this.overlayTimer.index + 1 ) ], 0, 0 );
-	$.ctx.ra();
-};
-
 $.statePlay.updateUI = function() {
-
+	if( this.scoreTick > 0 ) {
+		this.scoreTick--;
+	}
 };
 
 $.statePlay.renderUI = function() {
@@ -331,12 +325,16 @@ $.statePlay.renderUI = function() {
 	//$.ctx.font( '32px uni0553wf' ); // 20px tall
 	$.ctx.textBaseline( 'top' );
 	$.ctx.textAlign( 'left' );
-	$.ctx.fillStyle( '#bbb' );
-	$.ctx.fillText( '' + $.pad( this.killed, 5 ), 110, 0 );
+	if( this.scoreTick > 0 ) {
+		$.ctx.fillStyle( 'hsla(0, 0%, 100%, ' + ( 0.4 + ( this.scoreTick / ( this.scoreTickMax / 2 ) ) * 0.6 ) + ')' );
+	} else {
+		$.ctx.fillStyle( 'hsla(0, 0%, 100%, 0.4)' );
+	}
+	$.ctx.fillText( '' + $.pad( this.killed, 3 ), 110, 0 );
 
 	$.ctx.textAlign( 'right' );
-	$.ctx.fillStyle( '#bbb' );
-	$.ctx.fillText( 'HI ' + $.pad( 333, 5 ), $.game.width - 20, 1 );
+	$.ctx.fillStyle( 'hsla(0, 0%, 100%, 0.4)' );
+	$.ctx.fillText( 'HI ' + $.pad( 333, 3 ), $.game.width - 20, 1 );
 
 };
 
@@ -386,12 +384,38 @@ $.statePlay.renderHeart = function( opt ) {
 
 
 $.statePlay.gameover = function() {
-	this.dead = true;
-	this.gameoverTick++;
+	this.speed *= 0.99;
 
-	this.speed *= 0.98;
+	if( this.gameoverTick == 0 ) {
+		sound = $.game.playSound( 'gameover1' );
+		$.game.sound.setVolume( sound, 0.1 );
 
-	if( this.gameoverTick > 200 ) {
-		$.game.setState( $.statePlay );
+		this.dead = true;
+		$.game.state.explosions.create({
+			x: this.hero.x,
+			y: this.hero.y,
+			radius: 120,
+			hue: 120
+		});
+
+		for( var i = 0; i < 60; i++ ) {
+			$.game.state.particles.create({
+				x: this.hero.x + $.rand( -this.hero.radius / 2, this.hero.radius / 2 ),
+				y: this.hero.y + $.rand( -this.hero.radius / 2, this.hero.radius / 2 ),
+				vx: $.rand( -10, 10 ),
+				vy: $.rand( -10, 10 ),
+				radiusBase: $.rand( 12, 32 ),
+				growth: $.rand( 0.5, 1 ),
+				decay: $.rand( 0.01, 0.01 ),
+				hue: 120,
+				grow: true
+			});
+		}
+	}
+
+	if( this.gameoverTick > this.gameoverTickMax ) {
+		$.game.setState( $.stateMenu );
+	} else {
+		this.gameoverTick++;
 	}
 };

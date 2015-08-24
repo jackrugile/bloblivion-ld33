@@ -92,33 +92,47 @@ $.jet.prototype.step = function() {
 		});
 	}
 
-	if( this.x - this.sizeHalf < 0 ) {
-		$.game.state.lives--;
+	if( $.game.state.dead ) {
+		if( this.x + this.size < 0 ) {
+			$.game.state.jets.release( this );
+		}
+	} else {
+		if( this.x - this.sizeHalf < 0 ) {
+			var sound = $.game.playSound( 'wall-hit1' );
+			$.game.sound.setVolume( sound, 0.2 );
+			//$.game.sound.setPlaybackRate( sound, rate );
 
-		$.game.state.explosions.create({
-			x: this.x,
-			y: this.y,
-			radius: 60,
-			hue: 0
-		});
-		for( var i = 0; i < 30; i++ ) {
-			$.game.state.particles.create({
+			sound = $.game.playSound( 'wall-hit2' );
+			$.game.sound.setVolume( sound, 0.15 );
+			//$.game.sound.setPlaybackRate( sound, $.rand( 0.9, 1.1 ) );
+
+			$.game.state.lives--;
+
+			$.game.state.explosions.create({
 				x: this.x,
 				y: this.y,
-				vx: $.rand( 0, 15 ),
-				vy: $.rand( -3, 3 ),
-				radiusBase: $.rand( 16, 24 ),
-				growth: $.rand( 0.5, 1 ),
-				decay: $.rand( 0.01, 0.1 ),
-				hue: 0,
-				grow: false
+				radius: 60,
+				hue: 0
 			});
+			for( var i = 0; i < 30; i++ ) {
+				$.game.state.particles.create({
+					x: this.x,
+					y: this.y,
+					vx: $.rand( 0, 15 ),
+					vy: $.rand( -3, 3 ),
+					radiusBase: $.rand( 16, 24 ),
+					growth: $.rand( 0.5, 1 ),
+					decay: $.rand( 0.01, 0.1 ),
+					hue: 0,
+					grow: false
+				});
+			}
+
+			$.game.state.shake.translate += 12;
+			$.game.state.shake.rotate += 0.06;
+
+			$.game.state.jets.release( this );
 		}
-
-		$.game.state.shake.translate += 12;
-		$.game.state.shake.rotate += 0.06;
-
-		$.game.state.jets.release( this );
 	}
 };
 
@@ -151,6 +165,7 @@ $.jet.prototype.updateCollisionRects = function() {
 
 $.jet.prototype.hitDestroy = function() {
 	$.game.state.killed++;
+	$.game.state.scoreTick = $.game.state.scoreTickMax;
 	$.game.state.jets.release( this );
 	$.game.state.explosions.create({
 		x: this.x,
