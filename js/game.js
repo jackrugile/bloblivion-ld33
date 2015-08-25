@@ -28,19 +28,20 @@ $.game.create = function() {
 	);
 
 	this.loadSounds(
-		'click1.wav',
-		'click2.wav',
-		'click3.wav',
-		'shoot1.wav',
-		'shoot2.wav',
-		'shoot3.wav',
-		'hit1.wav',
-		'hit2.wav',
-		'hit3.wav',
-		'wall-hit1.wav',
-		'wall-hit2.wav',
-		'gamestart1.wav',
-		'gameover1.wav'
+		'music',
+		'click1',
+		'click2',
+		'click3',
+		'shoot1',
+		'shoot2',
+		'shoot3',
+		'hit1',
+		'hit2',
+		'hit3',
+		'wall-hit1',
+		'wall-hit2',
+		'gamestart1',
+		'gameover1'
 	);
 
 	$.storage = new $.storage( 'bloblivion' );
@@ -69,8 +70,8 @@ $.game.create = function() {
 };
 
 $.game.ready = function() {
-	//this.music.play( 'music', true );
-	this.setState( $.statePlay );
+	this.music.play( 'music', true );
+	this.setState( $.stateMenu );
 };
 
 $.game.step = function( dt ) {

@@ -16,14 +16,27 @@ $.projectile = function( opt ) {
 		x: 0,
 		y: 0,
 		ox: 0,
-		oy: 0
+		oy: 0,
+		ox2: 0,
+		oy2: 0
+	};
+
+	this.trackerCenter = {
+		x: 0,
+		y: 0,
+		ox: 0,
+		oy: 0,
+		ox2: 0,
+		oy2: 0
 	};
 
 	this.trackerRight = {
 		x: 0,
 		y: 0,
 		ox: 0,
-		oy: 0
+		oy: 0,
+		ox2: 0,
+		oy2: 0
 	};
 };
 
@@ -42,13 +55,24 @@ $.projectile.prototype.init = function( opt ) {
 
 	this.trackerLeft.x = this.x;
 	this.trackerLeft.y = this.y;
+	this.trackerCenter.x = this.x;
+	this.trackerCenter.y = this.y;
 	this.trackerRight.x = this.x;
 	this.trackerRight.y = this.y;
 
 	this.trackerLeft.ox = this.x;
 	this.trackerLeft.oy = this.y;
+	this.trackerCenter.ox = this.x;
+	this.trackerCenter.oy = this.y;
 	this.trackerRight.ox = this.x;
 	this.trackerRight.oy = this.y;
+
+	this.trackerLeft.ox2 = this.x;
+	this.trackerLeft.oy2 = this.y;
+	this.trackerCenter.ox2 = this.x;
+	this.trackerCenter.oy2 = this.y;
+	this.trackerRight.ox2 = this.x;
+	this.trackerRight.oy2 = this.y;
 
 	this.createBlobs();
 };
@@ -56,8 +80,17 @@ $.projectile.prototype.init = function( opt ) {
 $.projectile.prototype.step = function() {
 	this.updateCollisionRects();
 
+	this.trackerLeft.ox2 = this.trackerLeft.ox;
+	this.trackerLeft.oy2 = this.trackerLeft.oy;
+	this.trackerCenter.ox2 = this.trackerCenter.ox;
+	this.trackerCenter.oy2 = this.trackerCenter.oy;
+	this.trackerRight.ox2 = this.trackerRight.ox;
+	this.trackerRight.oy2 = this.trackerRight.oy;
+
 	this.trackerLeft.ox = this.trackerLeft.x;
 	this.trackerLeft.oy = this.trackerLeft.y;
+	this.trackerCenter.ox = this.trackerCenter.x;
+	this.trackerCenter.oy = this.trackerCenter.y;
 	this.trackerRight.ox = this.trackerRight.x;
 	this.trackerRight.oy = this.trackerRight.y;
 
@@ -67,6 +100,8 @@ $.projectile.prototype.step = function() {
 
 	this.trackerLeft.x = this.x + Math.cos( this.angle - Math.PI / 2 ) * this.radius;
 	this.trackerLeft.y = this.y + Math.sin( this.angle - Math.PI / 2 ) * this.radius;
+	this.trackerCenter.x = this.x;
+	this.trackerCenter.y = this.y;
 	this.trackerRight.x = this.x + Math.cos( this.angle + Math.PI / 2 ) * this.radius;
 	this.trackerRight.y = this.y + Math.sin( this.angle + Math.PI / 2 ) * this.radius;
 
@@ -88,6 +123,7 @@ $.projectile.prototype.step = function() {
 		this.blobs.each( 'destroy' );
 		this.blobs.empty();
 		this.blobs = null;
+		$.game.state.multiplier = 1;
 		$.game.state.projectiles.release( this );
 	}
 
@@ -101,18 +137,24 @@ $.projectile.prototype.render = function() {
 	$.ctx.restore();
 
 
-	/* trackers */
+	// trackers
 	/*$.ctx.fillStyle( 'hsla(120, 80%, 80%, ' + $.rand( 0.1, 1 ) + ')' );
 	$.ctx.strokeStyle( 'hsla(120, 80%, 80%, ' + $.rand( 0.1, 1 ) + ')' );
 
 	$.ctx.beginPath();
-	$.ctx.moveTo( this.trackerLeft.ox, this.trackerLeft.oy );
+	$.ctx.moveTo( this.trackerLeft.ox2, this.trackerLeft.oy2 );
 	$.ctx.lineTo( this.trackerLeft.x, this.trackerLeft.y );
 	$.ctx.lineWidth( 2 );
 	$.ctx.stroke();
 
 	$.ctx.beginPath();
-	$.ctx.moveTo( this.trackerRight.ox, this.trackerRight.oy );
+	$.ctx.moveTo( this.trackerCenter.ox2, this.trackerCenter.oy2 );
+	$.ctx.lineTo( this.trackerCenter.x, this.trackerCenter.y );
+	$.ctx.lineWidth( 2 );
+	$.ctx.stroke();
+
+	$.ctx.beginPath();
+	$.ctx.moveTo( this.trackerRight.ox2, this.trackerRight.oy2 );
 	$.ctx.lineTo( this.trackerRight.x, this.trackerRight.y );
 	$.ctx.lineWidth( 2 );
 	$.ctx.stroke();*/
@@ -206,8 +248,20 @@ $.projectile.prototype.checkJetCollisions = function() {
 				y: this.trackerLeft.y
 			},
 			{
-				x: this.trackerLeft.ox,
-				y: this.trackerLeft.oy
+				x: this.trackerLeft.ox2,
+				y: this.trackerLeft.oy2
+			},
+			jet.collisionRectLarge
+		) ) { hasCollision = true; };
+
+		if( $.segmentToRectIntersect(
+			{
+				x: this.trackerCenter.x,
+				y: this.trackerCenter.y
+			},
+			{
+				x: this.trackerCenter.ox2,
+				y: this.trackerCenter.oy2
 			},
 			jet.collisionRectLarge
 		) ) { hasCollision = true; };
@@ -218,8 +272,8 @@ $.projectile.prototype.checkJetCollisions = function() {
 				y: this.trackerRight.y
 			},
 			{
-				x: this.trackerRight.ox,
-				y: this.trackerRight.oy
+				x: this.trackerRight.ox2,
+				y: this.trackerRight.oy2
 			},
 			jet.collisionRectLarge
 		) ) { hasCollision = true; };

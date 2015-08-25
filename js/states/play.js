@@ -8,6 +8,7 @@ $.statePlay.enter = function() {
 	$.game.sound.setVolume( sound, 0.15 );
 
 	this.particles = new $.pool( $.particle, 200 );
+	this.scorePops = new $.pool( $.scorePop, 50 );
 	this.puffs = new $.pool( $.puff, 50 );
 	this.explosions = new $.pool( $.explosion, 50 );
 	this.projectiles = new $.pool( $.projectile, 50 );
@@ -31,13 +32,17 @@ $.statePlay.enter = function() {
 
 	this.jetSpawner = {
 		current: 0,
-		target: 100
+		target: 100,
+		count: 1,
+		speed: 3,
+		sinFreqDiv: 30,
+		sinAmp: 0
 	};
 
 	this.diffTracker = {
 		level: 1,
 		current: 0,
-		target: 500
+		target: 140
 	};
 
 	this.speed = 20;
@@ -46,8 +51,10 @@ $.statePlay.enter = function() {
 		rotate: 0
 	};
 
-	this.lives = 100;
-	this.killed = 0;
+	this.lives = 3;
+	this.score = 0;
+	this.multiplier = 1;
+	this.multiplierMax = 4;
 	this.dead = false;
 	this.paused = false;
 	this.hiScoreRef = $.storage.get( 'hiScore' );
@@ -59,7 +66,15 @@ $.statePlay.enter = function() {
 	this.gameoverTick = 0;
 	this.gameoverTickMax = 120;
 
+	this.difficulty = 0;
 	this.tick = 0;
+
+	this.isFF = false;
+	this.FFoffset = 0;
+	if( navigator.userAgent.toLowerCase().indexOf('firefox') > -1 ){
+		this.isFF = true;
+		this.FFoffset = 8;
+	}
 }
 
 $.statePlay.leave = function() {
@@ -107,6 +122,7 @@ $.statePlay.step = function( dt ) {
 	this.explosions.each( 'step' );
 	this.puffs.each( 'step' );
 	this.particles.each( 'step' );
+	this.scorePops.each( 'step' );
 	this.projectiles.each( 'step' );
 	this.hero.step();
 
@@ -132,6 +148,7 @@ $.statePlay.render = function( dt ) {
 	this.clouds.each( 'render' );
 	this.particles.each( 'render' );
 	this.jets.each( 'render' );
+	this.scorePops.each( 'render' );
 	this.hero.render();
 	this.projectiles.each( 'render' );
 	this.explosions.each( 'render' );
@@ -160,7 +177,7 @@ $.statePlay.render = function( dt ) {
 		$.ctx.textBaseline( 'top' );
 		$.ctx.textAlign( 'center' );
 		$.ctx.fillStyle( 'hsla(0, 0%, 0%, 0.75)' );
-		$.ctx.fillText( $.pad( this.killed, 3 ), $.game.width / 2, $.game.height / 2 - 26 );
+		$.ctx.fillText( $.pad( this.score, 3 ), $.game.width / 2, $.game.height / 2 - 26 );
 	}
 };
 
@@ -184,7 +201,7 @@ $.statePlay.shoot = function() {
 	if( this.paused ) { return; }
 
 	var sound = $.game.playSound( 'shoot' + $.randInt( 1, 3 ) );
-	$.game.sound.setVolume( sound, 0.6 );
+	$.game.sound.setVolume( sound, 0.55 );
 	$.game.sound.setPlaybackRate( sound, $.rand( 0.9, 1.1 ) );
 	var blastAngle = Math.atan2( $.game.mouse.y - $.game.state.hero.y - $.game.state.hero.blobMouth.y, $.game.mouse.x - $.game.state.hero.x - $.game.state.hero.blobMouth.x );
 	this.projectiles.create({
@@ -241,11 +258,34 @@ $.statePlay.updateDifficulty = function() {
 	if( this.dead ) { return; }
 
 	if( this.diffTracker.current >= this.diffTracker.target ) {
-		console.log( 'UP' );
+		this.difficulty++;
+		this.jetSpawner.speed += 0.3;
+		this.jetSpawner.target -= 1.5;
+
+		if( this.jetSpawner.speed > 11 ) {
+			this.jetSpawner.speed = 11;
+		}
+
+		if( this.jetSpawner.target < 20 ) {
+			this.jetSpawner.target = 20;
+		}
+
+		if( this.difficulty >= 10 && this.difficulty < 25 ) {
+			this.jetSpawner.sinFreqDiv -= 1;
+			this.jetSpawner.sinAmp += 0.1;
+		}
+
+		this.speed += 1;
 		this.diffTracker.current = 0;
 	} else {
 		this.diffTracker.current++;
 	}
+
+	// test max
+	/*this.jetSpawner.sinAmp = 1.5;
+	this.jetSpawner.sinFreqDiv = 15;
+	this.jetSpawner.speed = 12;
+	this.jetSpawner.target = 20;*/
 }
 
 $.statePlay.generateClouds = function() {
@@ -266,14 +306,17 @@ $.statePlay.generateJets= function() {
 	if( this.dead ) { return; }
 
 	if( this.jetSpawner.current >= this.jetSpawner.target ) {
-		this.jets.create({
-			x: $.game.width + 40,
-			y: $.rand( 40 + 100, $.game.height - 100 ),
-			vx: -5,
-			vy: 0,
-			offset: 0,
-			division: 20
-		});
+		for( var i = 0; i < this.jetSpawner.count; i++ ) {
+			this.jets.create({
+				x: $.game.width + 40,
+				y: $.rand( 40 + 100, $.game.height - 100 ),
+				vx: -this.jetSpawner.speed,
+				vy: 0,
+				sinOffset: 0,
+				sinFreqDiv: this.jetSpawner.sinFreqDiv,
+				sinAmp: this.jetSpawner.sinAmp
+			});
+		}
 		this.jetSpawner.current = 0;
 	} else {
 		this.jetSpawner.current++;
@@ -300,7 +343,7 @@ $.statePlay.createMountainRanges = function() {
 			speed: i / 3,
 			color: 'hsla(0, 0%, ' + ( ( 0.2 - ( i / length ) * 0.15 ) * 100 ) + '%, 1)',
 			opacity: 1,
-			sinDiv: 1,
+			sinFreqDiv: 1,
 			sinAmp: 0
 		}));
 	}
@@ -326,35 +369,40 @@ $.statePlay.renderUI = function() {
 	$.ctx.fillStyle( '#000' );
 	$.ctx.fillRect( 0, 0, $.game.width, 41 );
 
+	$.ctx.font( '24px uni0553wf' ); // 15px tall
+	$.ctx.textBaseline( 'top' );
+	$.ctx.textAlign( 'left' );
+	if( this.multiplier < 4 ) {
+		$.ctx.fillStyle( 'hsla(0, 0%, 100%, 0.4)' );
+	} else {
+		$.ctx.fillStyle( 'hsla(120, 80%, 65%, 1)' );
+	}
+	$.ctx.fillText( '+' + this.multiplier, 20, 1 + this.FFoffset );
+
 	this.renderHeart({
-		x: 30,
+		x: 83,
 		y: 20,
 		color: this.lives >= 1 ? 'hsla(120, 80%, 65%, 1)' : '#222'
 	});
 
 	this.renderHeart({
-		x: 55,
+		x: 108,
 		y: 20,
 		color: this.lives >= 2 ? 'hsla(120, 80%, 65%, 1)' : '#222'
 	});
 
 	this.renderHeart({
-		x: 80,
+		x: 133,
 		y: 20,
 		color: this.lives >= 3 ? 'hsla(120, 80%, 65%, 1)' : '#222'
 	});
 
-	//$.ctx.font( '16px uni0553wf' ); // 10px tall
-	$.ctx.font( '24px uni0553wf' ); // 15px tall
-	//$.ctx.font( '32px uni0553wf' ); // 20px tall
-	$.ctx.textBaseline( 'top' );
-	$.ctx.textAlign( 'left' );
 	if( this.scoreTick > 0 ) {
 		$.ctx.fillStyle( 'hsla(0, 0%, 100%, ' + ( 0.4 + ( this.scoreTick / this.scoreTickMax ) * 0.6 ) + ')' );
 	} else {
 		$.ctx.fillStyle( 'hsla(0, 0%, 100%, 0.4)' );
 	}
-	$.ctx.fillText( $.pad( this.killed, 3 ), 110, 0 );
+	$.ctx.fillText( $.pad( this.score, 3 ), 163, 1 + this.FFoffset );
 
 	$.ctx.textAlign( 'right' );
 	if( this.newHiScore ) {
@@ -362,7 +410,7 @@ $.statePlay.renderUI = function() {
 	} else {
 		$.ctx.fillStyle( 'hsla(0, 0%, 100%, 0.4)' );
 	}
-	$.ctx.fillText( 'HI ' + $.pad( this.hiScoreRef, 3 ), $.game.width - 20, 1 );
+	$.ctx.fillText( 'HI ' + $.pad( this.hiScoreRef, 3 ), $.game.width - 20, 1 + this.FFoffset );
 };
 
 $.statePlay.renderHeart = function( opt ) {

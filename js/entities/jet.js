@@ -53,8 +53,8 @@ $.jet.prototype.init = function( opt ) {
 	this.collisionRectLarge = {
 		x: 0,
 		y: 0,
-		w: this.size,
-		h: this.size
+		w: this.size * 2,
+		h: this.size * 2
 	};
 	this.collisionRectSmall = {
 		x: 0,
@@ -70,8 +70,8 @@ $.jet.prototype.step = function() {
 	this.x += this.vx;
 	this.y += this.vy;
 
-	if( !this.stationary ) {
-		this.vy = Math.sin( ( $.game.state.tick + this.offset ) / this.division ) * 3;
+	if( !this.stationary && this.sinFreqDiv ) {
+		this.vy = Math.sin( ( $.game.state.tick + this.sinOffset ) / this.sinFreqDiv ) * this.sinAmp;
 	}
 
 	this.rotation = Math.atan2( this.oy - this.y, this.ox - this.x );
@@ -127,6 +127,8 @@ $.jet.prototype.step = function() {
 				});
 			}
 
+			$.game.state.multiplier = 1;
+
 			$.game.state.shake.translate += 20;
 			$.game.state.shake.rotate += 0.1;
 			$.game.state.recentHitTick = 20;
@@ -154,6 +156,10 @@ $.jet.prototype.render = function() {
 	$.ctx.fillStyle( this.colorBot );
 	$.ctx.fill();
 	$.ctx.restore();
+
+	// hit box
+	/*$.ctx.fillStyle( 'hsla(0, 100%, 50%, 0.5)' );
+	$.ctx.fillRect( this.collisionRectLarge.x, this.collisionRectLarge.y, this.collisionRectLarge.w, this.collisionRectLarge.h );*/
 };
 
 $.jet.prototype.updateCollisionRects = function() {
@@ -164,7 +170,15 @@ $.jet.prototype.updateCollisionRects = function() {
 }
 
 $.jet.prototype.hitDestroy = function() {
-	$.game.state.killed++;
+	$.game.state.score += $.game.state.multiplier;
+	$.game.state.scorePops.create({
+		x: this.x,
+		y: this.y - 20,
+		val: $.game.state.multiplier
+	});
+	if( $.game.state.multiplier < $.game.state.multiplierMax ) {
+		$.game.state.multiplier++;
+	}
 	$.game.state.scoreTick = $.game.state.scoreTickMax;
 	$.game.state.jets.release( this );
 	$.game.state.explosions.create({
@@ -187,10 +201,10 @@ $.jet.prototype.hitDestroy = function() {
 		});
 	}
 
-	if( $.game.state.killed > $.game.state.hiScoreRef ) {
-		$.storage.set( 'hiScore', $.game.state.killed );
+	if( $.game.state.score > $.game.state.hiScoreRef ) {
+		$.storage.set( 'hiScore', $.game.state.score );
 		// use below to prevent constant storage lookups in play state
-		$.game.state.hiScoreRef = $.game.state.killed;
+		$.game.state.hiScoreRef = $.game.state.score;
 		$.game.state.newHiScore = true;
 	}
 }
